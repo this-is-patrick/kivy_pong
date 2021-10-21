@@ -1,11 +1,14 @@
 from kivy.app import App
 from kivy.uix.widget import Widget
+from kivy.uix.label import Label
 from kivy.properties import ( 
     NumericProperty,ReferenceListProperty,ObjectProperty 
 )
 from kivy.vector import Vector
 from kivy.clock import Clock
 from random import randint
+
+MAX_SCORE = 1
 
 class PongApp(App):
     def build(self):
@@ -34,9 +37,10 @@ class PongPaddle(Widget):
     def bounce_ball(self, ball):
         if self.collide_widget(ball):
             vx, vy = ball.velocity
+            offset = (ball.center_y - self.center_y) / (self.height / 2)
             bounced = Vector(-1 * vx, vy)
-            new_vel = bounced
-            ball.velocity = new_vel.x, new_vel.y
+            new_vel = bounced * 1.1
+            ball.velocity = new_vel.x, new_vel.y + offset
     
 
 class PongGame(Widget):
@@ -61,16 +65,33 @@ class PongGame(Widget):
         # ball hits either side - score a point for the opposite player
         if self.ball.x < 0:
             self.player2.score += 1
-            self.serve_ball(vel=(4,0))
+            if self.player2.score >= MAX_SCORE:
+                self.end_game()
+            else:
+                self.serve_ball(vel=(4,0)) 
         if self.ball.right > self.width:
             self.player1.score += 1
-            self.serve_ball(vel=(-4,0))
+            if self.player1.score >= MAX_SCORE:
+                self.end_game()
+            else:
+                self.serve_ball(vel=(-4,0))
+
     
     def on_touch_move(self, touch):
         if touch.x < self.width/3:
             self.player1.center_y = touch.y
         if touch.x > self.width - self.width/3:
             self.player2.center_y = touch.y
+
+
+    def end_game(self):
+        if self.player1.score > self.player2.score:
+            winner = 'PLAYER 1 WINS'
+        else:
+            winner = 'PLAYER 2 WINS'
+        
+        winnerLabel = Label(text=f"{winner}", font_size=80, center_x=self.center_x, center_y=self.center_y)
+        self.add_widget(winnerLabel)
 
 
 if __name__ == '__main__':

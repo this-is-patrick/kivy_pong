@@ -8,13 +8,13 @@ from kivy.vector import Vector
 from kivy.clock import Clock
 from random import randint
 
-MAX_SCORE = 1
+MAX_SCORE = 3
 
 class PongApp(App):
     def build(self):
         game = PongGame()
         game.serve_ball()
-        Clock.schedule_interval(game.update, 1.0/60.0)
+        game.start_clock()
         return game
         
         
@@ -51,7 +51,13 @@ class PongGame(Widget):
     def serve_ball(self, vel=(4,0)):
         self.ball.center = self.center
         self.ball.velocity = vel
-
+    
+    def start_clock(self):
+        self.game_loop = Clock.schedule_interval(self.update, 1.0/60.)
+    
+    def pause_clock(self):
+        self.game_loop.cancel()
+    
     def update(self, dt):
         self.ball.move()
 
@@ -90,8 +96,15 @@ class PongGame(Widget):
         else:
             winner = 'PLAYER 2 WINS'
         
-        winnerLabel = Label(text=f"{winner}", font_size=80, center_x=self.center_x, center_y=self.center_y)
+        winnerLabel = Label(
+                        text=f"{winner}",
+                        font_size=80,
+                        center_x=self.center_x,
+                        center_y=self.center_y
+                    )
         self.add_widget(winnerLabel)
+        self.pause_clock()
+    
 
 
 if __name__ == '__main__':
